@@ -1,0 +1,41 @@
+{
+  "name": "@ebraz/web",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./middleware": "./src/middleware/create-panel-middleware.ts"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint src/",
+    "clean": "rimraf dist"
+  },
+  "dependencies": {
+    "@ebraz/api-client": "workspace:*",
+    "@ebraz/auth": "workspace:*",
+    "@ebraz/types": "workspace:*",
+    "@ebraz/ui": "workspace:*",
+    "@ebraz/validation": "workspace:*",
+    "@tanstack/react-query": "^5.83.0"
+  },
+  "peerDependencies": {
+    "next": "^16.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@ebraz/eslint-config": "workspace:*",
+    "@ebraz/tsconfig": "workspace:*",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "eslint": "^9.30.1",
+    "next": "^16.0.10",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "rimraf": "^6.0.1",
+    "typescript": "^5.8.3"
+  }
+}

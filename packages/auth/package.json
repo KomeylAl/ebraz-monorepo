@@ -1,0 +1,36 @@
+{
+  "name": "@ebraz/auth",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./server": "./src/server/index.ts",
+    "./client": "./src/client/index.ts",
+    "./permissions": "./src/permissions/index.ts"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint src/",
+    "clean": "rimraf dist"
+  },
+  "dependencies": {
+    "@ebraz/config": "workspace:*",
+    "@ebraz/database": "workspace:*",
+    "@ebraz/types": "workspace:*",
+    "@ebraz/utils": "workspace:*",
+    "@ebraz/validation": "workspace:*",
+    "bcryptjs": "^3.0.2",
+    "jose": "^6.0.11"
+  },
+  "devDependencies": {
+    "@ebraz/eslint-config": "workspace:*",
+    "@ebraz/tsconfig": "workspace:*",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^22.15.32",
+    "eslint": "^9.30.1",
+    "rimraf": "^6.0.1",
+    "typescript": "^5.8.3"
+  }
+}

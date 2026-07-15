@@ -1,0 +1,38 @@
+{
+  "name": "@ebraz/api",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "dotenv -e ../../.env -- next dev --port 4000",
+    "build": "dotenv -e ../../.env -- next build",
+    "start": "dotenv -e ../../.env -- next start --port 4000",
+    "lint": "eslint src/",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "clean": "rimraf .next"
+  },
+  "dependencies": {
+    "@ebraz/auth": "workspace:*",
+    "@ebraz/config": "workspace:*",
+    "@ebraz/database": "workspace:*",
+    "@ebraz/types": "workspace:*",
+    "@ebraz/utils": "workspace:*",
+    "@ebraz/validation": "workspace:*",
+    "next": "^16.0.10",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "zod": "^3.25.67"
+  },
+  "devDependencies": {
+    "@ebraz/eslint-config": "workspace:*",
+    "@ebraz/tsconfig": "workspace:*",
+    "@types/node": "^22.15.32",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "babel-plugin-react-compiler": "^1.0.0",
+    "eslint": "^9.30.1",
+    "dotenv-cli": "^8.0.0",
+    "eslint-config-next": "^16.0.10",
+    "rimraf": "^6.0.1",
+    "typescript": "^5.8.3"
+  }
+}

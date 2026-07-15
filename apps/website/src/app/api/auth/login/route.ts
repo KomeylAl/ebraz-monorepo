@@ -1,0 +1,6 @@
+import { handleLogin, handleLogout, handleToken, handleUser } from "@ebraz/bff";
+import type { NextRequest } from "next/server";
+
+export async function POST(request: NextRequest) {
+  return handleLogin(request, "website");
+}

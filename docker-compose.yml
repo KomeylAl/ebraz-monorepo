@@ -1,0 +1,81 @@
+services:
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+    env_file: .env
+    command: pnpm --filter @ebraz/database db:migrate
+    restart: "no"
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file: .env
+    ports:
+      - "4000:4000"
+    command: pnpm --filter @ebraz/api start
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  website:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file: .env
+    ports:
+      - "3000:3000"
+    command: pnpm --filter @ebraz/website start
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  admin:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file: .env
+    ports:
+      - "3001:3001"
+    command: pnpm --filter @ebraz/admin-panel start
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  therapist:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file: .env
+    ports:
+      - "3002:3002"
+    command: pnpm --filter @ebraz/therapist-panel start
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  client:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file: .env
+    ports:
+      - "3003:3003"
+    command: pnpm --filter @ebraz/client-panel start
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  seed:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+    env_file: .env
+    command: pnpm --filter @ebraz/database db:seed
+    profiles:
+      - manual
+    restart: "no"

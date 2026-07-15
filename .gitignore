@@ -1,0 +1,51 @@
+# Dependencies
+node_modules
+.pnpm-store
+
+# Build outputs
+.next
+dist
+out
+build
+.turbo
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Debug
+npm-debug.log*
+pnpm-debug.log*
+
+# Prisma
+packages/database/prisma/*.db
+packages/database/prisma/*.db-journal
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Testing
+coverage
+
+# Uploads (keep directory, ignore uploaded files)
+packages/api/public/uploads/**
+!packages/api/public/uploads/.gitkeep
+
+# Backups (keep directory, ignore generated JSON)
+packages/api/public/backups/**
+!packages/api/public/backups/.gitkeep
+
+# Docker
+.docker

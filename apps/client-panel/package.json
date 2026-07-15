@@ -1,0 +1,39 @@
+{
+  "name": "@ebraz/client-panel",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --port 3003",
+    "build": "next build",
+    "start": "next start --port 3003",
+    "lint": "eslint src/",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "clean": "rimraf .next"
+  },
+  "dependencies": {
+    "@ebraz/api-client": "workspace:*",
+    "@ebraz/auth": "workspace:*",
+    "@ebraz/bff": "workspace:*",
+    "@ebraz/config": "workspace:*",
+    "@ebraz/types": "workspace:*",
+    "@ebraz/ui": "workspace:*",
+    "@ebraz/web": "workspace:*",
+    "next": "^16.0.10",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@ebraz/eslint-config": "workspace:*",
+    "@ebraz/tsconfig": "workspace:*",
+    "@tailwindcss/postcss": "^4.1.11",
+    "@types/node": "^22.15.32",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "babel-plugin-react-compiler": "^1.0.0",
+    "eslint": "^9.30.1",
+    "eslint-config-next": "^16.0.10",
+    "rimraf": "^6.0.1",
+    "tailwindcss": "^4.1.11",
+    "typescript": "^5.8.3"
+  }
+}

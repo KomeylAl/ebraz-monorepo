@@ -1,0 +1,756 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ───────────────────────────────────────────────────────────────────
+
+enum UserRole {
+  ADMIN
+  THERAPIST
+  CLIENT
+}
+
+enum AdminSubRole {
+  boss
+  receptionist
+  manager
+  author
+  accountant
+}
+
+enum AppointmentStatus {
+  pending
+  done
+}
+
+enum PaymentStatus {
+  pending
+  paid
+  unpaid
+}
+
+enum PostStatus {
+  draft
+  published
+  archived
+}
+
+enum Gender {
+  male
+  female
+}
+
+enum AssessmentStatus {
+  pending
+  done
+}
+
+enum NotificationType {
+  system
+  reminder
+  appointment
+  message
+}
+
+enum NotificationPriority {
+  low
+  medium
+  high
+}
+
+enum NotificationStatus {
+  pending
+  sent
+  failed
+}
+
+enum TherapistResourceType {
+  link
+  file
+}
+
+enum OtpPurpose {
+  THERAPIST_PASSWORD_CHANGE
+}
+
+enum BackupType {
+  ADMIN
+  THERAPIST
+  THERAPIST_RESUME
+  CLIENT
+  CLIENT_RECORD
+  ASSESSMENT
+  APPOINTMENT
+  PAYMENT
+  DEPARTMENT
+  POST
+  CATEGORY
+  TAG
+  WORKSHOP
+  ABOUT
+}
+
+// ─── Permission System ─────────────────────────────────────────────────────────
+
+model Permission {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  createdBy   String?  @map("created_by")
+  updatedBy   String?  @map("updated_by")
+  deletedAt   DateTime? @map("deleted_at")
+  deletedBy   String?  @map("deleted_by")
+
+  rolePermissions RolePermission[]
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  id           String     @id @default(cuid())
+  role         UserRole
+  subRole      AdminSubRole? @map("sub_role")
+  permissionId String     @map("permission_id")
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+  createdBy    String?    @map("created_by")
+  updatedBy    String?    @map("updated_by")
+  deletedAt    DateTime?  @map("deleted_at")
+  deletedBy    String?    @map("deleted_by")
+
+  permission Permission @relation(fields: [permissionId], references: [id])
+
+  @@unique([role, subRole, permissionId])
+  @@map("role_permissions")
+}
+
+// ─── Auth: Refresh Tokens ────────────────────────────────────────────────────
+
+model RefreshToken {
+  id         String    @id @default(cuid())
+  tokenHash  String    @unique @map("token_hash")
+  userId     String    @map("user_id")
+  userRole   UserRole  @map("user_role")
+  familyId   String    @map("family_id")
+  expiresAt  DateTime  @map("expires_at")
+  revokedAt  DateTime? @map("revoked_at")
+  replacedBy String?   @map("replaced_by")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+  createdBy  String?   @map("created_by")
+  updatedBy  String?   @map("updated_by")
+  deletedAt  DateTime? @map("deleted_at")
+  deletedBy  String?   @map("deleted_by")
+
+  @@index([userId, userRole])
+  @@index([familyId])
+  @@index([expiresAt])
+  @@map("refresh_tokens")
+}
+
+// ─── Auth: OTP Challenges ────────────────────────────────────────────────────
+
+model OtpChallenge {
+  id         String     @id @default(cuid())
+  userId     String     @map("user_id")
+  userRole   UserRole   @map("user_role")
+  purpose    OtpPurpose
+  codeHash   String     @map("code_hash")
+  phone      String
+  attempts   Int        @default(0)
+  maxAttempts Int       @default(5) @map("max_attempts")
+  expiresAt  DateTime   @map("expires_at")
+  consumedAt DateTime?  @map("consumed_at")
+  createdAt  DateTime   @default(now()) @map("created_at")
+  updatedAt  DateTime   @updatedAt @map("updated_at")
+
+  @@index([userId, userRole, purpose])
+  @@index([expiresAt])
+  @@map("otp_challenges")
+}
+
+// ─── Users (Infrastructure skeleton — full fields in feature migration) ──────
+
+model Admin {
+  id        String       @id @default(cuid())
+  name      String
+  phone     String       @unique
+  password  String
+  subRole   AdminSubRole @map("sub_role")
+  birthDate DateTime     @map("birth_date") @db.Date
+  createdAt DateTime     @default(now()) @map("created_at")
+  updatedAt DateTime     @updatedAt @map("updated_at")
+  createdBy String?      @map("created_by")
+  updatedBy String?      @map("updated_by")
+  deletedAt DateTime?    @map("deleted_at")
+  deletedBy String?      @map("deleted_by")
+
+  medicalRecords MedicalRecord[]
+  posts          Post[]
+  invoices       Invoice[]
+
+  @@map("admins")
+}
+
+model Therapist {
+  id            String    @id @default(cuid())
+  name          String
+  phone         String    @unique
+  password      String?
+  nationalCode  String    @unique @map("national_code")
+  birthDate     DateTime  @map("birth_date") @db.Date
+  cardNumber    String    @unique @map("card_number")
+  medicalNumber String?   @unique @map("medical_number")
+  email         String?
+  avatar        String?
+  times         String?
+  days          String?
+  resume        String?
+  profilePath   String?   @map("profile_path")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  createdBy     String?   @map("created_by")
+  updatedBy     String?   @map("updated_by")
+  deletedAt     DateTime? @map("deleted_at")
+  deletedBy     String?   @map("deleted_by")
+
+  appointments Appointment[]
+  medicalRecordsAsTherapist    MedicalRecord[] @relation("RecordTherapist")
+  medicalRecordsAsSupervisor   MedicalRecord[] @relation("RecordSupervisor")
+  departments                  DepartmentTherapist[]
+  assessmentAssignments        AssessmentAssignment[]
+  therapistResume              TherapistResume?
+  resources                    TherapistResource[]
+
+  @@map("therapists")
+}
+
+model Client {
+  id        String    @id @default(cuid())
+  name      String
+  phone     String    @unique
+  password  String?
+  birthDate DateTime? @map("birth_date") @db.Date
+  address   String?
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  createdBy String?   @map("created_by")
+  updatedBy String?   @map("updated_by")
+  deletedAt DateTime? @map("deleted_at")
+  deletedBy String?   @map("deleted_by")
+
+  appointments   Appointment[]
+  medicalRecord  MedicalRecord?
+  invoices       Invoice[]
+  assessments    AssessmentAssignment[]
+
+  @@map("clients")
+}
+
+// ─── Appointments & Payments ─────────────────────────────────────────────────
+
+model Appointment {
+  id          String            @id @default(cuid())
+  therapistId String            @map("therapist_id")
+  clientId    String            @map("client_id")
+  date        DateTime          @db.Date
+  time        String
+  amount      Int
+  status      AppointmentStatus @default(pending)
+  createdAt   DateTime          @default(now()) @map("created_at")
+  updatedAt   DateTime          @updatedAt @map("updated_at")
+  createdBy   String?           @map("created_by")
+  updatedBy   String?           @map("updated_by")
+  deletedAt   DateTime?         @map("deleted_at")
+  deletedBy   String?           @map("deleted_by")
+
+  therapist Therapist @relation(fields: [therapistId], references: [id])
+  client    Client    @relation(fields: [clientId], references: [id])
+  payment   Payment?
+
+  @@index([date])
+  @@index([clientId])
+  @@index([therapistId])
+  @@map("appointments")
+}
+
+model Payment {
+  id            String        @id @default(cuid())
+  appointmentId String        @unique @map("appointment_id")
+  status        PaymentStatus @default(pending)
+  amount        Int           @default(0)
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+  createdBy     String?       @map("created_by")
+  updatedBy     String?       @map("updated_by")
+  deletedAt     DateTime?     @map("deleted_at")
+  deletedBy     String?       @map("deleted_by")
+
+  appointment Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+
+  @@map("payments")
+}
+
+// ─── Medical Records ─────────────────────────────────────────────────────────
+
+model Companion {
+  id        String    @id @default(cuid())
+  name      String
+  phone     String    @unique
+  birthDate DateTime? @map("birth_date") @db.Date
+  address   String?
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  createdBy String?   @map("created_by")
+  updatedBy String?   @map("updated_by")
+  deletedAt DateTime? @map("deleted_at")
+  deletedBy String?   @map("deleted_by")
+
+  medicalRecord MedicalRecord?
+
+  @@map("companions")
+}
+
+model MedicalRecord {
+  id              String    @id @default(cuid())
+  recordNumber    String    @unique @map("record_number")
+  clientId        String    @unique @map("client_id")
+  therapistId     String?   @map("therapist_id")
+  supervisorId    String?   @map("supervisor_id")
+  adminId         String?   @map("admin_id")
+  companionId     String?   @unique @map("companion_id")
+  referenceSource String?   @map("reference_source")
+  admissionDate   DateTime  @map("admission_date") @db.Date
+  visitDate       DateTime  @map("visit_date") @db.Date
+  chiefComplaints String?   @map("chief_complaints") @db.Text
+  presentIllness  String?   @map("present_illness") @db.Text
+  pastHistory     String?   @map("past_history") @db.Text
+  familyHistory   String?   @map("family_history") @db.Text
+  personalHistory String?   @map("personal_history") @db.Text
+  mse             String?   @db.Text
+  diagnosis       String?   @db.Text
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  createdBy       String?   @map("created_by")
+  updatedBy       String?   @map("updated_by")
+  deletedAt       DateTime? @map("deleted_at")
+  deletedBy       String?   @map("deleted_by")
+
+  client     Client        @relation(fields: [clientId], references: [id])
+  therapist  Therapist?    @relation("RecordTherapist", fields: [therapistId], references: [id])
+  supervisor Therapist?    @relation("RecordSupervisor", fields: [supervisorId], references: [id])
+  admin      Admin?        @relation(fields: [adminId], references: [id])
+  companion  Companion?    @relation(fields: [companionId], references: [id])
+  images     RecordImage[]
+
+  @@map("medical_records")
+}
+
+model RecordImage {
+  id              String    @id @default(cuid())
+  medicalRecordId String    @map("medical_record_id")
+  filePath        String    @map("file_path")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  createdBy       String?   @map("created_by")
+  updatedBy       String?   @map("updated_by")
+  deletedAt       DateTime? @map("deleted_at")
+  deletedBy       String?   @map("deleted_by")
+
+  medicalRecord MedicalRecord @relation(fields: [medicalRecordId], references: [id], onDelete: Cascade)
+
+  @@index([medicalRecordId])
+  @@map("record_images")
+}
+
+// ─── CMS ─────────────────────────────────────────────────────────────────────
+
+model Category {
+  id        String    @id @default(cuid())
+  name      String
+  slug      String    @unique
+  excerpt   String?   @db.Text
+  content   String    @db.Text
+  image     String?
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  createdBy String?   @map("created_by")
+  updatedBy String?   @map("updated_by")
+  deletedAt DateTime? @map("deleted_at")
+  deletedBy String?   @map("deleted_by")
+
+  posts Post[]
+
+  @@map("categories")
+}
+
+model Tag {
+  id        String    @id @default(cuid())
+  name      String
+  slug      String    @unique
+  excerpt   String?   @db.Text
+  content   String    @db.Text
+  image     String?
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  createdBy String?   @map("created_by")
+  updatedBy String?   @map("updated_by")
+  deletedAt DateTime? @map("deleted_at")
+  deletedBy String?   @map("deleted_by")
+
+  posts PostTag[]
+
+  @@map("tags")
+}
+
+model Post {
+  id          String     @id @default(cuid())
+  adminId     String     @map("admin_id")
+  categoryId  String?    @map("category_id")
+  title       String
+  slug        String     @unique
+  excerpt     String?    @db.Text
+  content     String     @db.Text
+  thumbnail   String?
+  status      PostStatus @default(draft)
+  publishedAt DateTime?  @map("published_at")
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+  createdBy   String?    @map("created_by")
+  updatedBy   String?    @map("updated_by")
+  deletedAt   DateTime?  @map("deleted_at")
+  deletedBy   String?    @map("deleted_by")
+
+  admin    Admin     @relation(fields: [adminId], references: [id])
+  category Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  tags     PostTag[]
+
+  @@index([status])
+  @@index([categoryId])
+  @@map("posts")
+}
+
+model PostTag {
+  postId String @map("post_id")
+  tagId  String @map("tag_id")
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag  Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([postId, tagId])
+  @@map("post_tag")
+}
+
+model Department {
+  id        String    @id @default(cuid())
+  title     String
+  slug      String    @unique
+  excerpt   String?   @db.Text
+  content   String    @db.Text
+  thumbnail String?
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  createdBy String?   @map("created_by")
+  updatedBy String?   @map("updated_by")
+  deletedAt DateTime? @map("deleted_at")
+  deletedBy String?   @map("deleted_by")
+
+  therapists DepartmentTherapist[]
+
+  @@map("departments")
+}
+
+model DepartmentTherapist {
+  departmentId String @map("department_id")
+  therapistId  String @map("therapist_id")
+
+  department Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  therapist  Therapist  @relation(fields: [therapistId], references: [id], onDelete: Cascade)
+
+  @@id([departmentId, therapistId])
+  @@map("department_therapist")
+}
+
+model About {
+  id            String    @id @default(cuid())
+  title         String
+  about         String    @db.Text
+  address       String
+  phones        String
+  mobilePhones  String    @map("mobile_phones")
+  logoPath      String    @map("logo_path")
+  lat           String
+  longitude     String    @map("long")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  createdBy     String?   @map("created_by")
+  updatedBy     String?   @map("updated_by")
+  deletedAt     DateTime? @map("deleted_at")
+  deletedBy     String?   @map("deleted_by")
+
+  @@map("abouts")
+}
+
+// ─── Workshops ───────────────────────────────────────────────────────────────
+
+model Workshop {
+  id         String    @id @default(cuid())
+  title      String
+  slug       String    @unique
+  excerpt    String?   @db.Text
+  content    String    @db.Text
+  organizers String?
+  startDate  DateTime? @map("start_date") @db.Date
+  endDate    DateTime? @map("end_date") @db.Date
+  weekDay    String?   @map("week_day")
+  time       String?
+  imgPath    String?   @map("img_path")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+  createdBy  String?   @map("created_by")
+  updatedBy  String?   @map("updated_by")
+  deletedAt  DateTime? @map("deleted_at")
+  deletedBy  String?   @map("deleted_by")
+
+  sessions     WorkshopSession[]
+  participants ParticipantWorkshop[]
+
+  @@map("workshops")
+}
+
+model WorkshopSession {
+  id          String    @id @default(cuid())
+  workshopId  String    @map("workshop_id")
+  title       String
+  description String    @db.Text
+  sessionDate DateTime? @map("session_date") @db.Date
+  startTime   String    @map("start_time")
+  endTime     String    @map("end_time")
+  location    String?
+  link        String?
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  createdBy   String?   @map("created_by")
+  updatedBy   String?   @map("updated_by")
+  deletedAt   DateTime? @map("deleted_at")
+  deletedBy   String?   @map("deleted_by")
+
+  workshop Workshop @relation(fields: [workshopId], references: [id], onDelete: Cascade)
+
+  @@index([workshopId])
+  @@map("workshop_sessions")
+}
+
+model Participant {
+  id           String    @id @default(cuid())
+  name         String
+  nameEn       String?   @map("name_en")
+  nationalCode String?   @map("national_code")
+  phone        String
+  gender       Gender
+  approved     Boolean   @default(false)
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  createdBy    String?   @map("created_by")
+  updatedBy    String?   @map("updated_by")
+  deletedAt    DateTime? @map("deleted_at")
+  deletedBy    String?   @map("deleted_by")
+
+  workshops ParticipantWorkshop[]
+
+  @@index([phone])
+  @@index([nationalCode])
+  @@map("participants")
+}
+
+model ParticipantWorkshop {
+  participantId String    @map("participant_id")
+  workshopId    String    @map("workshop_id")
+  approved      Boolean   @default(false)
+  joinedAt      DateTime? @map("joined_at")
+  registeredAt  DateTime  @default(now()) @map("registered_at")
+
+  participant Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  workshop    Workshop    @relation(fields: [workshopId], references: [id], onDelete: Cascade)
+
+  @@id([participantId, workshopId])
+  @@map("participant_workshop")
+}
+
+// ─── Payments & Invoices ─────────────────────────────────────────────────────
+
+model Invoice {
+  id        String   @id @default(cuid())
+  clientId  String   @map("client_id")
+  adminId   String   @map("admin_id")
+  fromDate  DateTime @map("from_date") @db.Date
+  toDate    DateTime @map("to_date") @db.Date
+  filePath  String   @map("file_path")
+  totalAmount Int    @default(0) @map("total_amount")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  createdBy String?  @map("created_by")
+  updatedBy String?  @map("updated_by")
+  deletedAt DateTime? @map("deleted_at")
+  deletedBy String? @map("deleted_by")
+
+  client Client @relation(fields: [clientId], references: [id])
+  admin  Admin  @relation(fields: [adminId], references: [id])
+
+  @@index([clientId])
+  @@map("invoices")
+}
+
+// ─── Initial Assessments ─────────────────────────────────────────────────────
+
+model InitAssessment {
+  id        String           @id @default(cuid())
+  date      DateTime?        @db.Date
+  time      String?
+  status    AssessmentStatus @default(pending)
+  filePath  String?          @map("file_path")
+  createdAt DateTime         @default(now()) @map("created_at")
+  updatedAt DateTime         @updatedAt @map("updated_at")
+  createdBy String?          @map("created_by")
+  updatedBy String?          @map("updated_by")
+  deletedAt DateTime?        @map("deleted_at")
+  deletedBy String?          @map("deleted_by")
+
+  assignment AssessmentAssignment?
+
+  @@index([status])
+  @@index([date])
+  @@map("init_assessments")
+}
+
+model AssessmentAssignment {
+  id               String @id @default(cuid())
+  initAssessmentId String @unique @map("init_assessment_id")
+  clientId         String @map("client_id")
+  therapistId      String? @map("therapist_id")
+
+  initAssessment InitAssessment @relation(fields: [initAssessmentId], references: [id], onDelete: Cascade)
+  client         Client         @relation(fields: [clientId], references: [id])
+  therapist      Therapist?     @relation(fields: [therapistId], references: [id])
+
+  @@index([clientId])
+  @@index([therapistId])
+  @@map("assessment_user")
+}
+
+// ─── Notifications ───────────────────────────────────────────────────────────
+
+model Notification {
+  id               String               @id @default(cuid())
+  title            String
+  message          String?
+  type             NotificationType     @default(system)
+  targetRole       UserRole?            @map("target_role")
+  targetId         String?              @map("target_id")
+  priority         NotificationPriority @default(medium)
+  deliveryChannels Json?                @map("delivery_channels")
+  status           NotificationStatus   @default(sent)
+  meta             Json?
+  scheduledAt      DateTime?            @map("scheduled_at")
+  createdAt        DateTime             @default(now()) @map("created_at")
+  updatedAt        DateTime             @updatedAt @map("updated_at")
+
+  reads NotificationRead[]
+
+  @@index([targetRole, targetId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+model NotificationRead {
+  id             String    @id @default(cuid())
+  notificationId String    @map("notification_id")
+  receiverRole   UserRole  @map("receiver_role")
+  receiverId     String    @map("receiver_id")
+  readAt         DateTime? @map("read_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  notification Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+
+  @@unique([notificationId, receiverRole, receiverId])
+  @@index([receiverRole, receiverId])
+  @@map("notification_reads")
+}
+
+// ─── Therapist Panel ─────────────────────────────────────────────────────────
+
+model TherapistResume {
+  id             String   @id @default(cuid())
+  therapistId    String   @unique @map("therapist_id")
+  title          String?
+  bio            String?
+  specialization String?
+  educations     Json?
+  experiences    Json?
+  skills         Json?
+  certifications Json?
+  content        String?
+  socialLinks    Json?    @map("social_links")
+  filePath       String?  @map("file_path")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  therapist Therapist @relation(fields: [therapistId], references: [id], onDelete: Cascade)
+
+  @@map("therapist_resumes")
+}
+
+model TherapistResource {
+  id          String               @id @default(cuid())
+  therapistId String               @map("therapist_id")
+  title       String
+  type        TherapistResourceType
+  description String?
+  link        String?
+  filePath    String?              @map("file_path")
+  createdAt   DateTime             @default(now()) @map("created_at")
+  updatedAt   DateTime             @updatedAt @map("updated_at")
+
+  therapist Therapist @relation(fields: [therapistId], references: [id], onDelete: Cascade)
+
+  @@index([therapistId])
+  @@map("therapist_resources")
+}
+
+// ─── Backup / Restore ────────────────────────────────────────────────────────
+
+model Backup {
+  id        String     @id @default(cuid())
+  type      BackupType
+  filePath  String     @map("file_path")
+  fileUrl   String     @map("file_url")
+  createdBy String?    @map("created_by")
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+
+  @@index([type])
+  @@index([createdAt])
+  @@map("backups")
+}
+
+model Restore {
+  id        String     @id @default(cuid())
+  type      BackupType
+  itemCount Int        @default(0) @map("item_count")
+  createdBy String?    @map("created_by")
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+
+  @@index([type])
+  @@index([createdAt])
+  @@map("restores")
+}

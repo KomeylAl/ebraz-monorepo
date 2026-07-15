@@ -1,0 +1,18 @@
+export {
+  addWorkshopParticipantHandler,
+  approveWorkshopParticipantHandler,
+  createWorkshopHandler,
+  createWorkshopSessionHandler,
+  deleteWorkshopHandler,
+  deleteWorkshopParticipantHandler,
+  deleteWorkshopSessionHandler,
+  getPublicWorkshopHandler,
+  getWorkshopHandler,
+  listPublicWorkshopsHandler,
+  listWorkshopsHandler,
+  registerWorkshopHandler,
+  unapproveWorkshopParticipantHandler,
+  updateWorkshopHandler,
+  updateWorkshopParticipantHandler,
+  updateWorkshopSessionHandler,
+} from "./presentation/workshops.handler";

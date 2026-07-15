@@ -1,0 +1,46 @@
+{
+  "name": "@ebraz/validation",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./auth": "./src/auth/index.ts",
+    "./admins": "./src/admins/index.ts",
+    "./appointments": "./src/appointments/index.ts",
+    "./medical-records": "./src/medical-records/index.ts",
+    "./cms": "./src/cms/index.ts",
+    "./cms/categories": "./src/cms/categories.ts",
+    "./cms/departments": "./src/cms/departments.ts",
+    "./cms/posts": "./src/cms/posts.ts",
+    "./cms/tags": "./src/cms/tags.ts",
+    "./cms/about": "./src/cms/about.ts",
+    "./workshops": "./src/workshops/index.ts",
+    "./payments": "./src/payments/index.ts",
+    "./assessments": "./src/assessments/index.ts",
+    "./sms": "./src/sms/index.ts",
+    "./notifications": "./src/notifications/index.ts",
+    "./therapist-panel": "./src/therapist-panel/index.ts",
+    "./uploads": "./src/uploads/index.ts",
+    "./backup-restore": "./src/backup-restore/index.ts",
+    "./clients": "./src/clients/index.ts",
+    "./therapists": "./src/therapists/index.ts",
+    "./common": "./src/common/index.ts"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint src/",
+    "clean": "rimraf dist"
+  },
+  "dependencies": {
+    "zod": "^3.25.67"
+  },
+  "devDependencies": {
+    "@ebraz/eslint-config": "workspace:*",
+    "@ebraz/tsconfig": "workspace:*",
+    "eslint": "^9.30.1",
+    "rimraf": "^6.0.1",
+    "typescript": "^5.8.3"
+  }
+}
