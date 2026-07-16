@@ -8,15 +8,24 @@ x-app-build: &app-build
     NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4000}
 
 services:
+  # Lightweight image (no Next.js build) — build alone:
+  #   docker compose build migrate
+  #   docker compose run --rm migrate
   migrate:
     build:
       context: .
       dockerfile: Dockerfile
       target: migrator
     env_file: .env
+    environment:
+      DATABASE_URL: ${DATABASE_URL:?Set DATABASE_URL in .env}
     command: pnpm --filter @ebraz/database run db:migrate:docker
     restart: "no"
 
+  # Full app image — build once, reused by website/admin/therapist/client:
+  #   docker compose build api
+  #   docker compose up -d api
+  #   docker compose up -d website admin therapist client
   api:
     build: *app-build
     image: *app-image
@@ -27,6 +36,7 @@ services:
       NODE_ENV: production
       PORT: 4000
       HOSTNAME: 0.0.0.0
+      DATABASE_URL: ${DATABASE_URL:?Set DATABASE_URL in .env}
       UPLOAD_ROOT: /app/packages/api/public/uploads
     volumes:
       - uploads_data:/app/packages/api/public/uploads
@@ -38,7 +48,6 @@ services:
     restart: unless-stopped
 
   website:
-    build: *app-build
     image: *app-image
     env_file: .env
     ports:
@@ -53,7 +62,6 @@ services:
     restart: unless-stopped
 
   admin:
-    build: *app-build
     image: *app-image
     env_file: .env
     ports:
@@ -68,7 +76,6 @@ services:
     restart: unless-stopped
 
   therapist:
-    build: *app-build
     image: *app-image
     env_file: .env
     ports:
@@ -83,7 +90,6 @@ services:
     restart: unless-stopped
 
   client:
-    build: *app-build
     image: *app-image
     env_file: .env
     ports:
@@ -105,6 +111,7 @@ services:
       target: migrator
     env_file: .env
     environment:
+      DATABASE_URL: ${DATABASE_URL:?Set DATABASE_URL in .env}
       SEED_DEV_USERS: "false"
     command: >
       sh -c "pnpm --filter @ebraz/database run db:migrate:docker
