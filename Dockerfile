@@ -15,20 +15,21 @@ RUN pnpm install --frozen-lockfile
 FROM base AS builder
 ARG NEXT_PUBLIC_API_URL=http://localhost:4000
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
-COPY --from=deps /app/node_modules ./node_modules
+WORKDIR /app
+COPY --from=deps /app .
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
-RUN DATABASE_URL="postgresql://build:build@localhost:5432/build" pnpm db:generate
+RUN DATABASE_URL="postgresql://build:build@localhost:5432/build" \
+  pnpm --filter @ebraz/database run db:generate:docker
 RUN pnpm turbo run build
 
 FROM base AS migrator
-COPY --from=deps /app/node_modules ./node_modules
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
-COPY apps ./apps
-COPY packages ./packages
-COPY tooling ./tooling
+WORKDIR /app
+COPY --from=deps /app .
+COPY packages/database ./packages/database
 ENV NEXT_TELEMETRY_DISABLED=1
-RUN DATABASE_URL="postgresql://build:build@localhost:5432/build" pnpm --filter @ebraz/database exec prisma generate
+RUN DATABASE_URL="postgresql://build:build@localhost:5432/build" \
+  pnpm --filter @ebraz/database run db:generate:docker
 
 FROM base AS runner
 WORKDIR /app

@@ -14,7 +14,7 @@ services:
       dockerfile: Dockerfile
       target: migrator
     env_file: .env
-    command: pnpm --filter @ebraz/database exec prisma migrate deploy
+    command: pnpm --filter @ebraz/database run db:migrate:docker
     restart: "no"
 
   api:
@@ -107,8 +107,8 @@ services:
     environment:
       SEED_DEV_USERS: "false"
     command: >
-      sh -c "pnpm --filter @ebraz/database exec prisma migrate deploy
-      && pnpm --filter @ebraz/database exec tsx src/seed.ts"
+      sh -c "pnpm --filter @ebraz/database run db:migrate:docker
+      && pnpm --filter @ebraz/database run db:seed:docker"
     restart: "no"
 
 volumes:

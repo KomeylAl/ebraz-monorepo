@@ -17,9 +17,12 @@
     "lint": "eslint src/",
     "clean": "rimraf dist",
     "db:generate": "dotenv -e ../../.env -- prisma generate",
+    "db:generate:docker": "prisma generate",
     "db:migrate": "dotenv -e ../../.env -- prisma migrate deploy",
+    "db:migrate:docker": "prisma migrate deploy",
     "db:migrate:dev": "dotenv -e ../../.env -- prisma migrate dev",
     "db:seed": "dotenv -e ../../.env -- tsx src/seed.ts",
+    "db:seed:docker": "tsx src/seed.ts",
     "db:migrate:mysql": "dotenv -e ../../.env -- tsx src/migrate-from-mysql/cli.ts",
     "db:migrate:mysql:dry": "dotenv -e ../../.env -- tsx src/migrate-from-mysql/cli.ts --dry-run",
     "db:studio": "prisma studio"
