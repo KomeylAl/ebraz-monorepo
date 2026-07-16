@@ -53,6 +53,7 @@ export async function handleLogin(request: NextRequest, app: BffAppKind) {
 
     return NextResponse.json(legacy, { headers });
   } catch (error: unknown) {
+    console.error(error);
     const message = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json({ message: `Something went wrong ${message}` }, { status: 500 });
   }
