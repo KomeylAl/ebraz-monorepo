@@ -21,6 +21,8 @@ services:
       DATABASE_URL: ${DATABASE_URL:?Set DATABASE_URL in .env}
     command: pnpm --filter @ebraz/database run db:migrate:docker
     restart: "no"
+    networks:
+      - infrastructure
 
   # Full app image — build once, reused by website/admin/therapist/client:
   #   docker compose build api
@@ -46,6 +48,8 @@ services:
       migrate:
         condition: service_completed_successfully
     restart: unless-stopped
+    networks:
+      - infrastructure
 
   website:
     image: *app-image
@@ -60,6 +64,8 @@ services:
     depends_on:
       - api
     restart: unless-stopped
+    networks:
+      - infrastructure
 
   admin:
     image: *app-image
@@ -74,6 +80,8 @@ services:
     depends_on:
       - api
     restart: unless-stopped
+    networks:
+      - infrastructure
 
   therapist:
     image: *app-image
@@ -88,6 +96,8 @@ services:
     depends_on:
       - api
     restart: unless-stopped
+    networks:
+      - infrastructure
 
   client:
     image: *app-image
@@ -102,6 +112,8 @@ services:
     depends_on:
       - api
     restart: unless-stopped
+    networks:
+      - infrastructure
 
   seed:
     profiles: ["seed"]
@@ -117,7 +129,13 @@ services:
       sh -c "pnpm --filter @ebraz/database run db:migrate:docker
       && pnpm --filter @ebraz/database run db:seed:docker"
     restart: "no"
+    networks:
+      - infrastructure
 
 volumes:
   uploads_data:
   backups_data:
+
+networks:
+  infrastructure:
+    external: true
