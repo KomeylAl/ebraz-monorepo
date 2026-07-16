@@ -7,6 +7,7 @@ import type {
 import { buildPaginationMeta, getSkipTake } from "@ebraz/utils/pagination";
 import { normalizePhone } from "@ebraz/utils/phone";
 import { toTherapistProfile, toTherapistPublicProfile } from "../domain/therapist.mapper";
+import { TherapistError } from "../domain/therapists.errors";
 
 function buildSearchFilter(search?: string): Prisma.TherapistWhereInput | undefined {
   if (!search?.trim()) return undefined;
@@ -21,6 +22,11 @@ function buildSearchFilter(search?: string): Prisma.TherapistWhereInput | undefi
   };
 }
 
+const therapistListOrderBy: Prisma.TherapistOrderByWithRelationInput[] = [
+  { sortOrder: "asc" },
+  { name: "asc" },
+];
+
 export async function listTherapists(query: ListTherapistsQuery) {
   const where: Prisma.TherapistWhereInput = {
     deletedAt: null,
@@ -33,7 +39,7 @@ export async function listTherapists(query: ListTherapistsQuery) {
       where,
       skip,
       take,
-      orderBy: { createdAt: "desc" },
+      orderBy: therapistListOrderBy,
     }),
     prisma.therapist.count({ where }),
   ]);
@@ -56,7 +62,7 @@ export async function listPublicTherapists(query: ListTherapistsQuery) {
       where,
       skip,
       take,
-      orderBy: { name: "asc" },
+      orderBy: therapistListOrderBy,
     }),
     prisma.therapist.count({ where }),
   ]);
@@ -142,11 +148,20 @@ export async function findTherapistByMedicalNumber(
   });
 }
 
+async function nextSortOrder() {
+  const max = await prisma.therapist.aggregate({
+    where: { deletedAt: null },
+    _max: { sortOrder: true },
+  });
+  return (max._max.sortOrder ?? -1) + 1;
+}
+
 export async function createTherapistRecord(
   input: CreateTherapistInput,
   actorId: string,
   passwordHash?: string,
 ) {
+  const sortOrder = await nextSortOrder();
   const therapist = await prisma.therapist.create({
     data: {
       name: input.name.trim(),
@@ -161,6 +176,7 @@ export async function createTherapistRecord(
       days: input.days,
       resume: input.resume,
       profilePath: input.profilePath,
+      sortOrder,
       password: passwordHash,
       createdBy: actorId,
       updatedBy: actorId,
@@ -168,6 +184,44 @@ export async function createTherapistRecord(
   });
 
   return toTherapistProfile(therapist);
+}
+
+export async function reorderTherapists(orderedIds: string[], actorId: string) {
+  const active = await prisma.therapist.findMany({
+    where: { deletedAt: null },
+    select: { id: true },
+  });
+
+  const activeIds = new Set(active.map((t) => t.id));
+  if (orderedIds.length !== activeIds.size) {
+    throw new TherapistError(
+      "Ordered list must include all active therapists",
+      "REORDER_MISMATCH",
+    );
+  }
+
+  for (const id of orderedIds) {
+    if (!activeIds.has(id)) {
+      throw new TherapistError(
+        "Ordered list contains unknown or deleted therapist",
+        "REORDER_MISMATCH",
+      );
+    }
+  }
+
+  await prisma.$transaction(
+    orderedIds.map((id, index) =>
+      prisma.therapist.update({
+        where: { id },
+        data: {
+          sortOrder: index,
+          updatedBy: actorId,
+        },
+      }),
+    ),
+  );
+
+  return { message: "Therapists reordered" };
 }
 
 export async function updateTherapistRecord(

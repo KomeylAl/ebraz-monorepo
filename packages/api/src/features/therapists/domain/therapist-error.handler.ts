@@ -11,6 +11,8 @@ export function handleTherapistError(err: unknown): Response {
       case "CARD_NUMBER_EXISTS":
       case "MEDICAL_NUMBER_EXISTS":
         return error(err.code, err.message, 409);
+      case "REORDER_MISMATCH":
+        return error(err.code, err.message, 400);
       default:
         return error(err.code, err.message, 400);
     }

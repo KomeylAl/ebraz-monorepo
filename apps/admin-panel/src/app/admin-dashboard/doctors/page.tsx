@@ -3,6 +3,7 @@
 import { useModal } from "@/hooks/useModal";
 import { Modal } from "@/components/common/Modal";
 import CreateDoctorForm from "../_components/forms/CreateDoctorForm";
+import ReorderDoctorsModal from "../_components/ReorderDoctorsModal";
 import Header from "@/components/layout/Header";
 import UpdateDoctorForm from "../_components/forms/UpdateDoctorForm";
 import DeleteModal from "@/components/common/DeleteModal";
@@ -48,6 +49,11 @@ const Doctors = () => {
     closeModal: closeEdit,
   } = useModal();
   const { isOpen, openModal, closeModal } = useModal();
+  const {
+    isOpen: reorderOpen,
+    openModal: openReorder,
+    closeModal: closeReorder,
+  } = useModal();
 
   const debouncedSearch = useCallback(
     debounce((text) => {
@@ -68,11 +74,19 @@ const Doctors = () => {
         <div className="w-full h-full space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="font-bold text-2xl">مشاورین</h2>
-            <div
-              onClick={openModal}
-              className="px-12 py-2 bg-blue-600 rounded-md text-white text-center cursor-pointer"
-            >
-              افزودن مشاور
+            <div className="flex items-center gap-3">
+              <div
+                onClick={openReorder}
+                className="px-8 py-2 bg-white border border-blue-600 rounded-md text-blue-600 text-center cursor-pointer hover:bg-blue-50"
+              >
+                تغییر ترتیب
+              </div>
+              <div
+                onClick={openModal}
+                className="px-12 py-2 bg-blue-600 rounded-md text-white text-center cursor-pointer"
+              >
+                افزودن مشاور
+              </div>
             </div>
           </div>
           <div className="w-full h-full flex items-center justify-center">
@@ -151,6 +165,19 @@ const Doctors = () => {
           onCloseModal={closeModal}
           onDoctorAdded={() => {
             closeModal();
+          }}
+        />
+      </Modal>
+      <Modal
+        isOpen={reorderOpen}
+        onClose={closeReorder}
+        className="max-w-[560px] bg-white max-h-[90%] overflow-y-auto"
+        showCloseButton={false}
+      >
+        <ReorderDoctorsModal
+          onClose={closeReorder}
+          onSaved={() => {
+            refetch();
           }}
         />
       </Modal>

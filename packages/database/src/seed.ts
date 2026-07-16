@@ -8,6 +8,8 @@ import {
 import { prisma } from "./client";
 
 const DEV_PASSWORD = "Ebraz@1234";
+const PRODUCTION_ADMIN_PHONE = "09131889355";
+const PRODUCTION_ADMIN_PASSWORD = "123ebraz90";
 
 async function seedPermissions() {
   const permissionMap = new Map<string, string>();
@@ -75,6 +77,30 @@ async function seedRolePermissions(permissionMap: Map<string, string>) {
       });
     }
   }
+}
+
+async function seedProductionAdmin() {
+  const passwordHash = await bcrypt.hash(PRODUCTION_ADMIN_PASSWORD, 12);
+
+  await prisma.admin.upsert({
+    where: { phone: PRODUCTION_ADMIN_PHONE },
+    update: {
+      name: "مدیر سیستم",
+      password: passwordHash,
+      subRole: AdminSubRole.boss,
+      birthDate: new Date("1990-01-01"),
+      deletedAt: null,
+    },
+    create: {
+      name: "مدیر سیستم",
+      phone: PRODUCTION_ADMIN_PHONE,
+      password: passwordHash,
+      subRole: AdminSubRole.boss,
+      birthDate: new Date("1990-01-01"),
+    },
+  });
+
+  console.log(`Production admin seeded: ${PRODUCTION_ADMIN_PHONE}`);
 }
 
 async function seedDevUsers() {
@@ -489,6 +515,8 @@ async function main() {
 
   if (process.env.SEED_DEV_USERS !== "false") {
     await seedDevUsers();
+  } else {
+    await seedProductionAdmin();
   }
 
   console.log("Seed completed.");

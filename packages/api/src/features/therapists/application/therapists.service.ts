@@ -2,6 +2,7 @@ import { hashPassword } from "@ebraz/auth/server";
 import type {
   CreateTherapistInput,
   ListTherapistsQuery,
+  ReorderTherapistsInput,
   SetTherapistPasswordInput,
   UpdateTherapistInput,
 } from "@ebraz/validation/therapists";
@@ -17,6 +18,7 @@ import {
   listPublicTherapists,
   listTherapists,
   findPublicTherapistDetail,
+  reorderTherapists,
   setTherapistPasswordRecord,
   softDeleteTherapistRecord,
   updateTherapistRecord,
@@ -146,6 +148,13 @@ export async function setTherapistPassword(
 
   const passwordHash = await hashPassword(input.password);
   return setTherapistPasswordRecord(id, passwordHash, actorId);
+}
+
+export async function reorderTherapistsOrder(
+  input: ReorderTherapistsInput,
+  actorId: string,
+) {
+  return reorderTherapists(input.orderedIds, actorId);
 }
 
 export async function deleteTherapist(id: string, actorId: string) {

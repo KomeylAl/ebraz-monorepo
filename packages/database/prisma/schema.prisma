@@ -214,6 +214,7 @@ model Therapist {
   days          String?
   resume        String?
   profilePath   String?   @map("profile_path")
+  sortOrder     Int       @default(0) @map("sort_order")
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
   createdBy     String?   @map("created_by")

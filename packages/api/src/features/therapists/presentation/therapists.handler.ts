@@ -1,9 +1,11 @@
 import {
   createTherapistSchema,
   listTherapistsQuerySchema,
+  reorderTherapistsSchema,
   setTherapistPasswordSchema,
   updateTherapistSchema,
   type CreateTherapistInput,
+  type ReorderTherapistsInput,
   type SetTherapistPasswordInput,
   type UpdateTherapistInput,
 } from "@ebraz/validation/therapists";
@@ -19,6 +21,7 @@ import {
   getPublicTherapist,
   getTherapist,
   getTherapists,
+  reorderTherapistsOrder,
   setTherapistPassword,
   updateTherapist,
 } from "../application/therapists.service";
@@ -150,6 +153,24 @@ export const deleteTherapistHandler = withPermission(
     try {
       await deleteTherapist(id, request.auth.sub);
       return success({ message: "Therapist deleted" });
+    } catch (err) {
+      return handleTherapistError(err);
+    }
+  },
+);
+
+export const reorderTherapistsHandler = withPermission(
+  "therapists.write",
+  async (request: AuthenticatedRequest) => {
+    const input = await parseBody<ReorderTherapistsInput>(
+      request,
+      reorderTherapistsSchema,
+    );
+    if (isErrorResponse(input)) return input;
+
+    try {
+      const result = await reorderTherapistsOrder(input, request.auth.sub);
+      return success(result);
     } catch (err) {
       return handleTherapistError(err);
     }

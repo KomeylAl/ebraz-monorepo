@@ -14,6 +14,7 @@ export interface TherapistProfile {
   days?: string;
   resume?: string;
   profilePath?: string;
+  sortOrder: number;
   createdAt: string;
   updatedAt: string;
 }

@@ -82,6 +82,7 @@ const DoctorProfile = async ({ params }: DoctorProfileProps) => {
   const experiences = Array.isArray(resume.experiences) ? resume.experiences : [];
   const social = (resume.social_links ?? resume.socialLinks ?? {}) as Record<string, string>;
   const resources = Array.isArray(resume.resources) ? resume.resources : [];
+  const doctorAvatar = normalizeImageUrl(doctor?.avatar);
 
   return (
     <div className="bg-niceblue-50 min-h-screen">
@@ -115,7 +116,7 @@ const DoctorProfile = async ({ params }: DoctorProfileProps) => {
         {/* Doctor Info */}
         <div className="w-full lg:w-1/3 flex flex-col items-center justify-center gap-4 lg:sticky lg:top-28">
           <Image
-            src={normalizeImageUrl(doctor.avatar) || "/default-avatar.jpg"}
+            src={doctorAvatar ?? "/default-avatar.jpg"}
             alt={doctor.name}
             width={400}
             height={400}

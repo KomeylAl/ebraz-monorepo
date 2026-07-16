@@ -1,5 +1,6 @@
 export type { BffAppKind } from "./config";
 export { getApiBaseUrl, getAuthLoginPath } from "./config";
+export { normalizeAssetPath } from "./asset-url";
 export { mapLegacyPath, mapPublicLegacyUrl } from "./path-map";
 export { mapLegacyQuery } from "./query-map";
 export { formDataToJson, isMultipartRequest } from "./body-map";

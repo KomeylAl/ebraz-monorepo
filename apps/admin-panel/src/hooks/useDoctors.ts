@@ -21,6 +21,44 @@ export function useDoctors(
   });
 }
 
+export function useAllDoctorsForReorder(enabled: boolean = true) {
+  return useQuery({
+    queryKey: ["doctors", "reorder"],
+    queryFn: async () => {
+      const res = await fetch(`/api/doctors?page=1&pageSize=100`);
+      if (!res.ok) {
+        throw new Error("خطا در دریافت لیست مشاورین");
+      }
+      return res.json();
+    },
+    enabled,
+  });
+}
+
+export function useReorderDoctors(onSuccess: () => void) {
+  return useMutation({
+    mutationFn: async (orderedIds: string[]) => {
+      const res = await fetch(`/api/doctors/reorder`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderedIds }),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        throw new Error(json?.message || "خطا در ذخیره ترتیب");
+      }
+      return json;
+    },
+    onError(error) {
+      toast.error(error.message);
+    },
+    onSuccess: () => {
+      toast.success("ترتیب مشاورین با موفقیت ذخیره شد");
+      onSuccess();
+    },
+  });
+}
+
 export function useGetDoctor(doctorId: string) {
   return useQuery({
     queryKey: ["doctor", doctorId],

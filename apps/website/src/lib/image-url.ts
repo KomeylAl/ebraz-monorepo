@@ -1,23 +1,11 @@
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ??
-  "http://localhost:4000";
+import { normalizeAssetPath } from "@ebraz/bff";
 
 export function normalizeImageUrl(value: unknown): string | null {
-  if (typeof value !== "string") return null;
-
-  const source = value.trim().replace(/\\/g, "/");
+  const source = normalizeAssetPath(value);
   if (!source) return null;
 
   if (source.startsWith("data:") || source.startsWith("blob:")) {
     return source;
-  }
-
-  if (source.startsWith("/uploads/")) {
-    return `${API_BASE}${source}`;
-  }
-
-  if (source.startsWith("uploads/")) {
-    return `${API_BASE}/${source}`;
   }
 
   if (source.startsWith("//")) {
@@ -41,6 +29,5 @@ export function normalizeImageUrl(value: unknown): string | null {
     return `http://${source}`;
   }
 
-  // Legacy data may contain paths without a leading slash.
-  return `/${source.replace(/^\.?\//, "")}`;
+  return null;
 }

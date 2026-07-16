@@ -23,6 +23,7 @@ export function toTherapistProfile(therapist: TherapistRecord): TherapistProfile
     days: optionalString(therapist.days),
     resume: optionalString(therapist.resume),
     profilePath: optionalString(therapist.profilePath),
+    sortOrder: therapist.sortOrder,
     createdAt: therapist.createdAt.toISOString(),
     updatedAt: therapist.updatedAt.toISOString(),
   };

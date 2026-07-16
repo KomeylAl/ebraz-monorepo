@@ -1,4 +1,5 @@
 import type { AdminSubRole, AuthUserProfile } from "@ebraz/types";
+import { normalizeAssetPath } from "./asset-url";
 
 export function mapLegacyRoleCookie(subRole?: AdminSubRole): string {
   if (subRole === "author") return "author";
@@ -76,6 +77,9 @@ export function deepSnakeCase(value: unknown): unknown {
     }
 
     return result;
+  }
+  if (typeof value === "string") {
+    return normalizeAssetPath(value) ?? value;
   }
   return value;
 }

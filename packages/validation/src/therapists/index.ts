@@ -55,7 +55,17 @@ export const setTherapistPasswordSchema = z.object({
 
 export const listTherapistsQuerySchema = paginationSchema;
 
+export const reorderTherapistsSchema = z.object({
+  orderedIds: z
+    .array(z.string().min(1))
+    .min(1, "حداقل یک درمانگر الزامی است")
+    .refine((ids) => new Set(ids).size === ids.length, {
+      message: "شناسه‌های درمانگر باید یکتا باشند",
+    }),
+});
+
 export type CreateTherapistInput = z.infer<typeof createTherapistSchema>;
 export type UpdateTherapistInput = z.infer<typeof updateTherapistSchema>;
 export type SetTherapistPasswordInput = z.infer<typeof setTherapistPasswordSchema>;
 export type ListTherapistsQuery = z.infer<typeof listTherapistsQuerySchema>;
+export type ReorderTherapistsInput = z.infer<typeof reorderTherapistsSchema>;
